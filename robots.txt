@@ -1,1 +1,1 @@
-Sitemap: https://pmgautam.github.io/personal-blog/sitemap.xml
+Sitemap: https://pmgautam.com/sitemap.xml

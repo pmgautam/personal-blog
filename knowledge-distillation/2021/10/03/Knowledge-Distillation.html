@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Knowledge Distillation | A Blog by Pramesh Gautam</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Knowledge Distillation" />
+<meta name="author" content="Pramesh Gautam" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Blog explaining Knowledge Distillation paper" />
+<meta property="og:description" content="Blog explaining Knowledge Distillation paper" />
+<link rel="canonical" href="https://pmgautam.com/knowledge-distillation/2021/10/03/Knowledge-Distillation.html" />
+<meta property="og:url" content="https://pmgautam.com/knowledge-distillation/2021/10/03/Knowledge-Distillation.html" />
+<meta property="og:site_name" content="A Blog by Pramesh Gautam" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-10-03T00:00:00-05:00" />
+<script type="application/ld+json">
+{"datePublished":"2021-10-03T00:00:00-05:00","url":"https://pmgautam.com/knowledge-distillation/2021/10/03/Knowledge-Distillation.html","@type":"BlogPosting","headline":"Knowledge Distillation","dateModified":"2021-10-03T00:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://pmgautam.com/knowledge-distillation/2021/10/03/Knowledge-Distillation.html"},"author":{"@type":"Person","name":"Pramesh Gautam"},"description":"Blog explaining Knowledge Distillation paper","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://pmgautam.com/feed.xml" title="A Blog by Pramesh Gautam" /><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">A Blog by Pramesh Gautam</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+<a class="page-link" href="/about/">About Me</a><a class="page-link" href="/search/">Search</a><a class="page-link" href="/categories/">Tags</a>
+</div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Knowledge Distillation</h1>
+<p class="page-description">Blog explaining Knowledge Distillation paper</p>
+<p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-10-03T00:00:00-05:00" itemprop="datePublished">
+        Oct 3, 2021
+      </time>• 
+          <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <span class="p-author h-card" itemprop="name">Pramesh Gautam</span></span>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      6 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i> 
+      
+        <a class="category-tags-link" href="/categories/#Knowledge-distillation">Knowledge-distillation</a>
+        
+      
+      </p>
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/pmgautam/personal-blog/tree/master/_notebooks/2021-10-03-Knowledge-Distillation.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/pmgautam/personal-blog/master?filepath=_notebooks%2F2021-10-03-Knowledge-Distillation.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/assets/badges/binder.svg" alt="Open In Binder">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/pmgautam/personal-blog/blob/master/_notebooks/2021-10-03-Knowledge-Distillation.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/assets/badges/colab.svg" alt="Open In Colab">
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#Motivation">Motivation </a></li>
+<li class="toc-entry toc-h2"><a href="#Analogy">Analogy </a></li>
+<li class="toc-entry toc-h2"><a href="#Task">Task </a></li>
+<li class="toc-entry toc-h2"><a href="#Knowledge">Knowledge </a></li>
+<li class="toc-entry toc-h2">
+<a href="#Approach">Approach </a>
+<ul>
+<li class="toc-entry toc-h3">
+<a href="#Soft-targets">Soft targets </a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#Softmax-function">Softmax function </a></li>
+<li class="toc-entry toc-h4"><a href="#Softmax-function-with-temperature-parameter">Softmax function with temperature parameter </a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#Training-teacher">Training teacher </a></li>
+<li class="toc-entry toc-h2"><a href="#Training-student">Training student </a></li>
+<li class="toc-entry toc-h1"><a href="#Implementation">Implementation </a></li>
+<li class="toc-entry toc-h1"><a href="#Conclusion">Conclusion </a></li>
+<li class="toc-entry toc-h1"><a href="#References">References </a></li>
+</ul>
+<!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2021-10-03-Knowledge-Distillation.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Hello,
+In this post I'll be writing about Knowledge Distillation. Basically, I'll be summarizing the concept from <a href="https://arxiv.org/abs/1503.02531">this paper</a> on Knowledge Distillation. Knowledge Distillation is the process of training a network by using the concepts/knowledge that has been learned by other networks. Basically, it is the process of distilling knowledge from one model to another (mostly from large model to small model).</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Motivation">
+<a class="anchor" href="#Motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation<a class="anchor-link" href="#Motivation"> </a>
+</h2>
+<p>Larger models have high learning capacity and can perform well when trained on large datasets. This is the pattern followed in Machine Learning. If getting the best accuracy is the only aim then this approach is fine. But when we want to deploy the model in hardware with less compute or time constraints (e.g: deploying models on mobile phones), deploying large models is not an option. We would like to have smaller models that perform on par or close to large models but be efficient in computation. The main motivation behind Knowledge Distillation is to use large, complex models during training so that they can extract a lot of concepts from the data and use these models to train smaller models that will be used in inference and are more efficient (computation and memory-wise) than large models.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Analogy">
+<a class="anchor" href="#Analogy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Analogy<a class="anchor-link" href="#Analogy"> </a>
+</h2>
+<p>An analogy from stages of butterfly can be related to the concepts of Knowledge Distillation. They need to eat a lot to gain nutrition and energy. They also need to be light to fly around and mate. Since these are opposite tasks, there are separate forms for such tasks. Caterpillar is the stage that feeds a lot to gain energy and nutrition. Its task is just eating. Once this stage is complete, it is transformed to butterfly for tasks such as flying, mating that require lightweight. The same pattern can be suitable in Machine Learning as discussed in motivation (training a large complicated model and using a small/light model for inference).</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Task">
+<a class="anchor" href="#Task" aria-hidden="true"><span class="octicon octicon-link"></span></a>Task<a class="anchor-link" href="#Task"> </a>
+</h2>
+<p>The task is Knowledge Distillation is to train a smaller model that performs better than itself trained from scratch. For this, a large model using lots of data to high accuracy will be trained first. This is known as a <strong>teacher</strong>. It is able to learn a lot of concepts with its large size/learning capacity. For inference, a smaller model is trained using the knowledge acquired by the large model. The small model that is used in inference is called <strong>student</strong>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Knowledge">
+<a class="anchor" href="#Knowledge" aria-hidden="true"><span class="octicon octicon-link"></span></a>Knowledge<a class="anchor-link" href="#Knowledge"> </a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>Input image</th>
+<th><img src="https://github.com/pmgautam/personal-blog/blob/master/assets/images/kd/bmw_1.png?raw=true" width="150" height="100"></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Predicted class</td>
+<td>Car</td>
+<td>Truck</td>
+<td>Carrot</td>
+</tr>
+<tr>
+<td>Confidence</td>
+<td>0.9</td>
+<td>0.09</td>
+<td>0.01</td>
+</tr>
+</tbody>
+</table>
+<p>Knowledge is the concept that is acquired by the teacher model, i.e: output of teacher for various images. In the above example, although the model is quite sure that the image is of car, there is something interesting about probabilities of other classes as well. We can see that the model is far more sure about the image being a truck than a carrot. This knowledge is used by Knowledge Distillation to train a smaller model. The model having 0.09 confidence of being a truck and 0.01 confidence of being a carrot is a very useful information. We ignore this knowledge while training a classifier. Knowledge distillation aims to use this knowledge effectively to train the smaller model. It is also called <em>dark knowledge</em> as it exists in the model but is not used for downstream task. Knowledge distillation utilizes this knowledge.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Approach">
+<a class="anchor" href="#Approach" aria-hidden="true"><span class="octicon octicon-link"></span></a>Approach<a class="anchor-link" href="#Approach"> </a>
+</h2>
+<h3 id="Soft-targets">
+<a class="anchor" href="#Soft-targets" aria-hidden="true"><span class="octicon octicon-link"></span></a>Soft targets<a class="anchor-link" href="#Soft-targets"> </a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>Target Type (🠧) Class (🠦)</th>
+<th>Car</th>
+<th>Truck</th>
+<th>Carrot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hard targets</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Model outputs</td>
+<td>0.9</td>
+<td>0.09</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>Soft targets</td>
+<td>0.8</td>
+<td>0.15</td>
+<td>0.05</td>
+</tr>
+</tbody>
+</table>
+<p>As seen in the above table, there are three types of targets that denote the class of a given image. Hard targets denote the class to which the image belongs using 1 and the rest of the classes have a value 0. This is also called one-hot encoding. The second row is the example of model outputs without any changes. In the case of multi-class classification, it is the value of softmax that outputs softer distribution than hard targets and all the classes are assigned some probability values. The last row denotes soft targets which are softened by using the temperature parameter in softmax function. As we make the distribution softer and softer, high probabilities will decrease and small probabilities will increase. Making the distribution softer can make the knowledge valuable to student as it can carry the concepts more clearly (in this case the probabilities of each class i.e: model gives the information not just about the image that it is most sure of but regarding other classes as well). In this example, the model can provide information that there are details that are related to truck and carrot (although smaller) which can be a valuable information while teaching the student model.</p>
+<h4 id="Softmax-function">
+<a class="anchor" href="#Softmax-function" aria-hidden="true"><span class="octicon octicon-link"></span></a>Softmax function<a class="anchor-link" href="#Softmax-function"> </a>
+</h4>
+<p>
+$$q_i = \frac{exp(z_i)}{\sum_{j}exp(z_j)}$$
+</p>
+<h4 id="Softmax-function-with-temperature-parameter">
+<a class="anchor" href="#Softmax-function-with-temperature-parameter" aria-hidden="true"><span class="octicon octicon-link"></span></a>Softmax function with temperature parameter<a class="anchor-link" href="#Softmax-function-with-temperature-parameter"> </a>
+</h4>
+<p>
+$$q_i = \frac{exp(z_i/\tau)}{\sum_{j}exp(z_j/\tau)}$$
+</p>
+<p>$\tau$ is called <strong>temperature</strong>. It controls the extent to which the distribution is to be softened and can be decided by using hyperparameter search.</p>
+<p>In PyTorch this can be computed as:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="n">logits</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">2.8</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#output of model for car, truck and carrot</span>
+<span class="n">t</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1">#temperature parameter to make distribution soft</span>
+<span class="n">softmax</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="o">/</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># Outputs</span>
+<span class="n">tensor</span><span class="p">([[</span><span class="mf">0.9178</span><span class="p">,</span> <span class="mf">0.0617</span><span class="p">,</span> <span class="mf">0.0205</span><span class="p">]])</span> <span class="c1"># t=1</span>
+<span class="n">tensor</span><span class="p">([[</span><span class="mf">0.7098</span><span class="p">,</span> <span class="mf">0.1840</span><span class="p">,</span> <span class="mf">0.1062</span><span class="p">]])</span> <span class="c1"># t=2</span>
+<span class="n">tensor</span><span class="p">([[</span><span class="mf">0.5923</span><span class="p">,</span> <span class="mf">0.2408</span><span class="p">,</span> <span class="mf">0.1669</span><span class="p">]])</span> <span class="c1"># t=3</span>
+<span class="n">tensor</span><span class="p">([[</span><span class="mf">0.4877</span><span class="p">,</span> <span class="mf">0.2842</span><span class="p">,</span> <span class="mf">0.2281</span><span class="p">]])</span> <span class="c1"># t=5</span>
+</pre></div>
+<p>As we increase the temperature parameter the softmax output changes to a softer distribution.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Training-teacher">
+<a class="anchor" href="#Training-teacher" aria-hidden="true"><span class="octicon octicon-link"></span></a>Training teacher<a class="anchor-link" href="#Training-teacher"> </a>
+</h2>
+<p>Training a teacher is similar to training other neural networks. Since the objective is to learn as much as possible so that the student could be taught using the knowledge learned by the teacher, normally large model is trained on large datasets. Teacher can also be an ensemble of models.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Training-student">
+<a class="anchor" href="#Training-student" aria-hidden="true"><span class="octicon octicon-link"></span></a>Training student<a class="anchor-link" href="#Training-student"> </a>
+</h2>
+<p>Training a student is the main contribution of Knowledge Distillation. Student is trained using the knowledge gathered by teacher as well as the ground truth labels.</p>
+<p>
+$$p^\tau_T = \text{softmax}(a_T/\tau)$$
+</p>
+<p>
+$$p^\tau_S = \text{softmax}(a_S/\tau)$$
+</p>
+<p>
+$$hard\_loss = H(y_{true}, p_S)$$
+</p>
+<p>
+$$soft\_loss = H(p^\tau_T, p^\tau_S)$$
+</p>
+<p>
+$$KD\_loss = hard\_loss + \lambda * soft\_loss$$
+</p>
+<p>$\lambda$ is the weight hyperparameter</p>
+<p>We can train the student by minimizing <strong>KD_loss</strong>. As seen from the equation, Knowledge distillation uses both the hard labels and soft labels to train the student model.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Implementation">
+<a class="anchor" href="#Implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation<a class="anchor-link" href="#Implementation"> </a>
+</h1>
+<p>Simple version of Knowledge Distillation is implemented in <a href="link">this</a> notebook. It uses CIFAR-10 dataset and CNN based networks for teacher and student. This implementation uses the same dataset for student and teacher. In a real scenario, one way to train can be training teacher on large data and student on small data using the soft targets from teacher.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Conclusion">
+<a class="anchor" href="#Conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion<a class="anchor-link" href="#Conclusion"> </a>
+</h1>
+<p>KD is an effective approach of training a small model to do well in inference so that it could run on devices with less compute. It has come very far from the paper we've discussed. However, the main concept remains the same i.e: training one network by using the knowledge of another network.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Please feel free to leave suggestions and questions if any. I'll see you in the next one. <img class="emoji" title=":smiley:" alt=":smiley:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f603.png" height="20" width="20"></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="References">
+<a class="anchor" href="#References" aria-hidden="true"><span class="octicon octicon-link"></span></a>References<a class="anchor-link" href="#References"> </a>
+</h1>
+<ol>
+<li><a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a></li>
+<li>
+<a href="https://www.ttic.edu/dl/dark14.pdf">https://www.ttic.edu/dl/dark14.pdf</a> </li>
+</ol>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  </div>
+<!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js" repo="pmgautam/personal-blog" issue-term="title" label="blogpost-comment" theme="github-light" crossorigin="anonymous" async>
+</script><a class="u-url" href="/knowledge-distillation/2021/10/03/Knowledge-Distillation.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p></p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list">
+<li><a rel="me" href="https://github.com/pmgautam" title="pmgautam"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg></a></li>
+<li><a rel="me" href="https://twitter.com/pmgautam_" title="pmgautam_"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg></a></li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
