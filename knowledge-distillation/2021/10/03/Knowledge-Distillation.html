@@ -160,6 +160,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h2"><a href="#Training-teacher">Training teacher </a></li>
 <li class="toc-entry toc-h2"><a href="#Training-student">Training student </a></li>
 <li class="toc-entry toc-h1"><a href="#Implementation">Implementation </a></li>
+<li class="toc-entry toc-h1"><a href="#Results">Results </a></li>
 <li class="toc-entry toc-h1"><a href="#Conclusion">Conclusion </a></li>
 <li class="toc-entry toc-h1"><a href="#References">References </a></li>
 </ul>
@@ -175,8 +176,7 @@ window.onload = wrap_img;
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Hello,
-In this post I'll be writing about Knowledge Distillation. Basically, I'll be summarizing the concept from <a href="https://arxiv.org/abs/1503.02531">this paper</a> on Knowledge Distillation. Knowledge Distillation is the process of training a network by using the concepts/knowledge that has been learned by other networks. Basically, it is the process of distilling knowledge from one model to another (mostly from large model to small model).</p>
+<p>In this post I'll be discussing about Knowledge Distillation. Basically, I'll be summarizing the concept from <a href="https://arxiv.org/abs/1503.02531">this paper</a> on Knowledge Distillation. Knowledge Distillation is the process of training a smaller network by using the concepts/knowledge that has been learned by the large network. Basically, it is the process of distilling knowledge from one model to another.</p>
 
 </div>
 </div>
@@ -187,7 +187,7 @@ In this post I'll be writing about Knowledge Distillation. Basically, I'll be su
 <h2 id="Motivation">
 <a class="anchor" href="#Motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation<a class="anchor-link" href="#Motivation"> </a>
 </h2>
-<p>Larger models have high learning capacity and can perform well when trained on large datasets. This is the pattern followed in Machine Learning. If getting the best accuracy is the only aim then this approach is fine. But when we want to deploy the model in hardware with less compute or time constraints (e.g: deploying models on mobile phones), deploying large models is not an option. We would like to have smaller models that perform on par or close to large models but be efficient in computation. The main motivation behind Knowledge Distillation is to use large, complex models during training so that they can extract a lot of concepts from the data and use these models to train smaller models that will be used in inference and are more efficient (computation and memory-wise) than large models.</p>
+<p>Larger models have high learning capacity and can perform well when trained on large datasets. This is the pattern followed in Machine Learning. If getting the best accuracy is the only aim then this approach is fine. But when we want to deploy the model in hardware with less compute or time constraints (e.g: deploying models on mobile phones), deploying large models is not an option. We want to have smaller models that perform on par or close to large models but be efficient in computation. The main motivation behind Knowledge Distillation is to use large, complex models during training so that they can extract a lot of concepts from the data and use these models to train smaller models that will be used in inference as they are more efficient (computation and memory-wise) than large models.</p>
 
 </div>
 </div>
@@ -198,7 +198,7 @@ In this post I'll be writing about Knowledge Distillation. Basically, I'll be su
 <h2 id="Analogy">
 <a class="anchor" href="#Analogy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Analogy<a class="anchor-link" href="#Analogy"> </a>
 </h2>
-<p>An analogy from stages of butterfly can be related to the concepts of Knowledge Distillation. They need to eat a lot to gain nutrition and energy. They also need to be light to fly around and mate. Since these are opposite tasks, there are separate forms for such tasks. Caterpillar is the stage that feeds a lot to gain energy and nutrition. Its task is just eating. Once this stage is complete, it is transformed to butterfly for tasks such as flying, mating that require lightweight. The same pattern can be suitable in Machine Learning as discussed in motivation (training a large complicated model and using a small/light model for inference).</p>
+<p>An analogy from stages of butterfly's life can be related to the concepts of Knowledge Distillation. They need to eat a lot to gain nutrition and energy. They also need to be light to fly around and mate. Since these are opposite tasks, there are separate forms for such tasks. Caterpillar is the stage that feeds a lot to gain energy and nutrition. Its task is just eating. Once this stage is complete, it is transformed to butterfly for tasks such as flying, mating that require lightweight. The same pattern can be suitable in Machine Learning as discussed in motivation (training a large complicated model and using a small/light model for inference).</p>
 
 </div>
 </div>
@@ -209,7 +209,7 @@ In this post I'll be writing about Knowledge Distillation. Basically, I'll be su
 <h2 id="Task">
 <a class="anchor" href="#Task" aria-hidden="true"><span class="octicon octicon-link"></span></a>Task<a class="anchor-link" href="#Task"> </a>
 </h2>
-<p>The task is Knowledge Distillation is to train a smaller model that performs better than itself trained from scratch. For this, a large model using lots of data to high accuracy will be trained first. This is known as a <strong>teacher</strong>. It is able to learn a lot of concepts with its large size/learning capacity. For inference, a smaller model is trained using the knowledge acquired by the large model. The small model that is used in inference is called <strong>student</strong>.</p>
+<p>The task in Knowledge Distillation is to train a smaller model that performs better than itself trained from scratch. For this, a large model using lots of data to high accuracy will be trained first. This is known as a <strong>teacher</strong>. It is able to learn a lot of concepts with its large size/learning capacity. For inference, a smaller model is trained using the knowledge acquired by the large model. The small model that is used in inference is called <strong>student</strong>.</p>
 
 </div>
 </div>
@@ -348,16 +348,18 @@ $$p^\tau_T = \text{softmax}(a_T/\tau)$$
 $$p^\tau_S = \text{softmax}(a_S/\tau)$$
 </p>
 <p>
-$$hard\_loss = H(y_{true}, p_S)$$
+$$hard\_loss = CE(y_{true}, p_S)$$
 </p>
 <p>
-$$soft\_loss = H(p^\tau_T, p^\tau_S)$$
+$$soft\_loss = KL(p^\tau_T, p^\tau_S)$$
 </p>
 <p>
-$$KD\_loss = hard\_loss + \lambda * soft\_loss$$
+$$KD\_loss = (1 - \lambda) * soft\_loss + \lambda * hard\_loss$$
 </p>
-<p>$\lambda$ is the weight hyperparameter</p>
+<p>$\lambda$ is the weight hyperparameter, $CE$ and $KL$ denote Crossentropy and KL divergence respectively.</p>
 <p>We can train the student by minimizing <strong>KD_loss</strong>. As seen from the equation, Knowledge distillation uses both the hard labels and soft labels to train the student model.</p>
+<p><img src="https://raw.githubusercontent.com/pmgautam/personal-blog/master/assets/images/kd/kd_arch.png" alt=""></p>
+<p>As seen in the diagram above, student tries to match the soft targets from the teacher.</p>
 
 </div>
 </div>
@@ -368,7 +370,24 @@ $$KD\_loss = hard\_loss + \lambda * soft\_loss$$
 <h1 id="Implementation">
 <a class="anchor" href="#Implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation<a class="anchor-link" href="#Implementation"> </a>
 </h1>
-<p>Simple version of Knowledge Distillation is implemented in <a href="link">this</a> notebook. It uses CIFAR-10 dataset and CNN based networks for teacher and student. This implementation uses the same dataset for student and teacher. In a real scenario, one way to train can be training teacher on large data and student on small data using the soft targets from teacher.</p>
+<p>Simple version of Knowledge Distillation is implemented in <a href="https://github.com/pmgautam/ML-implementations/blob/main/run_kd.py">this</a> script. It uses MNISR dataset and MLP networks for teacher and student. This implementation uses the same dataset for student and teacher. In a real scenario, one way to train can be training teacher on large data and student on small data using the soft targets from teacher.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Results">
+<a class="anchor" href="#Results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results<a class="anchor-link" href="#Results"> </a>
+</h1>
+<p>Teacher network: 218,960 parameters (3 layer MLP)</p>
+<p>Student network: 51,450 parameters (3 layer MLP)</p>
+<p>Teacher accuracy: 97.76</p>
+<p>Student accuracy without distillation: 95.88</p>
+<p>Student accuracy with distillation: 96.73</p>
+<p>Each training was done for 5 epochs</p>
+<p>As we can see the distilled model closes the gap between the model trained from scratch and the teacher model</p>
 
 </div>
 </div>
@@ -439,8 +458,8 @@ $$KD\_loss = hard\_loss + \lambda * soft\_loss$$
 
     <div class="social-links">
 <ul class="social-media-list">
-<li><a rel="me" href="https://github.com/pmgautam" title="pmgautam"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg></a></li>
-<li><a rel="me" href="https://twitter.com/pmgautam_" title="pmgautam_"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg></a></li>
+<li><a rel="me" href="https://github.com/pmgautam" target="_blank" title="pmgautam"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg></a></li>
+<li><a rel="me" href="https://twitter.com/pmgautam_" target="_blank" title="pmgautam_"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg></a></li>
 </ul>
 </div>
 
