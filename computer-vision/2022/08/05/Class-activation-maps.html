@@ -200,7 +200,8 @@ window.onload = wrap_img;
 </h1>
 <p>Class activation map was introduced in <a href="https://arxiv.org/abs/1512.04150">Learning Deep Features for Discriminative Localization</a>. It was introduced to use the classifier networks for localization tasks. However it can also be used to interpret the models and figure out where the network focuses to classify a input. It uses the weights in the final layer to weight the feature maps in the final convolution layer. That weighted sum is used to see the activation map.</p>
 <p><img src="https://github.com/pmgautam/personal-blog/blob/master/images/CAM.png?raw=true" alt="Class activation map computation"></p>
-<p>As seen in the figure above, once the input image passes through the CONV layers, let's say it produces feature map  of shape $1\times2048\times7\times7$ in the format $B \times C \times H \times W$ format. Global Average Pooling will then sum the spatial dimension and produce output of shape $1\times2048$ after collapsing across spatial dimension. There will be $2048\times1000$ weights mapping from output of GAP layer to final layer (1000 number of classes in ImageNet). Once we classify the image, the corresponding 2048 weights mapping from GAP layer to FC layer are used to weight the 2048 spatial features of the last convolutional layer. These weighted features are then resized to the input image size to get the final feature map.</p>
+<p>As seen in the figure above, once the input image passes through the CONV layers, let's say it produces feature map  of shape $1\times2048\times7\times7$ for the image of input size $1\times3\times224\times224$ in the format $B \times C \times H \times W$ format. Global Average Pooling (GAP) will then sum the spatial dimension and produce output of shape $1\times2048$ after collapsing across spatial dimension. There will be $2048\times1000$ weights mapping from output of GAP layer to final layer (1000 number of classes in ImageNet). Once we classify the image, the corresponding 2048 weights mapping from GAP layer to FC layer are used to weight the 2048 spatial features of the last convolutional layer. These weighted features are then resized to the input image size to get the final feature map.</p>
+<p>In the figure, the model predicts the input image as <em>Australian terrier</em>. Weights $W_1...W_n$ are the weights that connect the output of GAP layer to the FC layer corresponding to the predicted class. We can say that the weights $W_1...W_n$ are responsible to find the importance of each unit in GAP layer that leads to <em>Australian terrier</em> class in output. We use these weights to find the weighted combination of 2048 spatial features in final convolutional layer.</p>
 
 </div>
 </div>
@@ -444,42 +445,11 @@ window.onload = wrap_img;
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">res</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bchw,bchw-&gt;bhw"</span><span class="p">,</span> <span class="n">fc_weights</span><span class="p">,</span> <span class="n">activation</span><span class="p">[</span><span class="s2">"layer4"</span><span class="p">])</span>
-<span class="n">res</span><span class="o">.</span><span class="n">shape</span>
-</pre></div>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cam</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bchw,bchw-&gt;bhw"</span><span class="p">,</span> <span class="n">fc_weights</span><span class="p">,</span> <span class="n">activation</span><span class="p">[</span><span class="s2">"layer4"</span><span class="p">])</span>
 
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>torch.Size([1, 10, 14])</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-    
-
-    
-    
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">combined_cam</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">combined_cam</span><span class="o">.</span><span class="n">shape</span>
+<span class="c1"># add dimension to make compatible with interpolation</span>
+<span class="n">cam</span> <span class="o">=</span> <span class="n">cam</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">cam</span><span class="o">.</span><span class="n">shape</span>
 </pre></div>
 
     </div>
@@ -512,7 +482,7 @@ window.onload = wrap_img;
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">final_cam</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">combined_cam</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"bilinear"</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">final_cam</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">cam</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"bilinear"</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -575,8 +545,8 @@ window.onload = wrap_img;
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">features</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">activation</span><span class="p">[</span><span class="s2">"layer4"</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"bilinear"</span><span class="p">)</span>
 
-<span class="n">final_res</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bchw,bchw-&gt;bhw"</span><span class="p">,</span> <span class="n">fc_weights</span><span class="p">,</span> <span class="n">features</span><span class="p">)</span>
-<span class="n">final_res</span><span class="o">.</span><span class="n">shape</span>
+<span class="n">cam_new</span> <span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">"bchw,bchw-&gt;bhw"</span><span class="p">,</span> <span class="n">fc_weights</span><span class="p">,</span> <span class="n">features</span><span class="p">)</span>
+<span class="n">cam_new</span><span class="o">.</span><span class="n">shape</span>
 </pre></div>
 
     </div>
@@ -609,41 +579,8 @@ window.onload = wrap_img;
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">features</span><span class="o">.</span><span class="n">shape</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>torch.Size([1, 2048, 320, 426])</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-    
-
-    
-    
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-
-<div class="inner_cell">
-    <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">input_img</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">final_res</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">);</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cam_new</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">);</span>
 </pre></div>
 
     </div>
@@ -672,7 +609,7 @@ window.onload = wrap_img;
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>I hope this blog was useful to understand Class Activation Maps. I will add Grad-CAM in future post. Please feel free to open pull requests or comment if you see anything needs to be corrected or if you have any questions. I'll see you in the next one.</p>
+<p>Thank you for going through the post and I hope is was helpful to understand Class Activation Maps. I will add Grad-CAM in future post. Please post comments if anything is not clear or if you have any suggestions.</p>
 <p>Bye :)</p>
 
 </div>
